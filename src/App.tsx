@@ -584,7 +584,33 @@ function App() {
 
   const handleCreateGroup = () => {
     if (groupName.trim() && selectedContactsForGroup.length > 0) {
-      alert(`Group "${groupName}" created with ${selectedContactsForGroup.length} members!`);
+      // Create a new group contact
+      const selectedContactNames = contacts
+        .filter(contact => selectedContactsForGroup.includes(contact.wa_id))
+        .map(contact => contact.profile_name);
+
+      const newGroup: Contact = {
+        wa_id: `group_${Date.now()}`,
+        profile_name: groupName.trim(),
+        lastMessage: {
+          _id: `msg_${Date.now()}`,
+          id: `msg_${Date.now()}`,
+          from: 'system',
+          to: `group_${Date.now()}`,
+          text: { body: `Group created with ${selectedContactsForGroup.length} members: ${selectedContactNames.join(', ')}` },
+          timestamp: Date.now(),
+          type: 'text',
+          status: 'sent',
+          wa_id: `group_${Date.now()}`,
+          profile_name: groupName.trim()
+        },
+        unreadCount: 0
+      };
+
+      // Add the group to contacts list
+      setContacts(prev => [newGroup, ...prev]);
+
+      // Close modal and reset form
       setShowNewGroup(false);
       setGroupName('');
       setSelectedContactsForGroup([]);
@@ -826,8 +852,17 @@ function App() {
                 : `hover:bg-gray-50 border-gray-100 ${selectedContact?.wa_id === contact.wa_id ? 'bg-green-50 border-l-4 border-l-green-500' : ''}`
                 }`}
             >
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold mr-2 sm:mr-3 text-sm sm:text-base">
-                {contact.profile_name.charAt(0).toUpperCase()}
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white font-semibold mr-2 sm:mr-3 text-sm sm:text-base ${contact.wa_id.startsWith('group_')
+                ? 'bg-gradient-to-br from-green-400 to-green-600'
+                : 'bg-gradient-to-br from-blue-400 to-purple-500'
+                }`}>
+                {contact.wa_id.startsWith('group_') ? (
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9M19 9H14V4H5V21H19V9Z" />
+                  </svg>
+                ) : (
+                  contact.profile_name.charAt(0).toUpperCase()
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
@@ -875,8 +910,17 @@ function App() {
                 </svg>
               </button>
 
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
-                {selectedContact.profile_name.charAt(0).toUpperCase()}
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold mr-3 ${selectedContact.wa_id.startsWith('group_')
+                ? 'bg-gradient-to-br from-green-400 to-green-600'
+                : 'bg-gradient-to-br from-blue-400 to-purple-500'
+                }`}>
+                {selectedContact.wa_id.startsWith('group_') ? (
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9M19 9H14V4H5V21H19V9Z" />
+                  </svg>
+                ) : (
+                  selectedContact.profile_name.charAt(0).toUpperCase()
+                )}
               </div>
               <div className="flex-1">
                 <h2 className={`text-lg font-semibold ${settings.darkMode ? 'text-white' : 'text-gray-900'}`}>
