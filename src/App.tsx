@@ -56,9 +56,9 @@ function App() {
     });
 
     socket.on('messageStatusUpdate', (update: { messageId: string; status: string }) => {
-      setMessages(prev => 
-        prev.map(msg => 
-          msg._id === update.messageId 
+      setMessages(prev =>
+        prev.map(msg =>
+          msg._id === update.messageId
             ? { ...msg, status: update.status as 'sent' | 'delivered' | 'read' }
             : msg
         )
@@ -78,7 +78,22 @@ function App() {
 
   const loadContacts = async () => {
     try {
-      // Simulated contacts data - in real app, this would come from API
+      // Load contacts from production API
+      const response = await axios.get('https://whatsaapweb.onrender.com/api/contacts');
+      const apiContacts = response.data;
+
+      // Transform API data to match our interface
+      const contacts: Contact[] = apiContacts.map((contact: any) => ({
+        wa_id: contact.wa_id,
+        profile_name: contact.profile_name,
+        unreadCount: contact.unreadCount || 0,
+        lastMessage: contact.lastMessage
+      }));
+
+      setContacts(contacts);
+    } catch (error) {
+      console.error('Error loading contacts:', error);
+      // Fallback to mock data if API fails
       const mockContacts: Contact[] = [
         {
           wa_id: '1234567890',
@@ -133,14 +148,33 @@ function App() {
         }
       ];
       setContacts(mockContacts);
-    } catch (error) {
-      console.error('Error loading contacts:', error);
     }
   };
 
   const loadMessages = async (wa_id: string) => {
     try {
-      // Simulated messages data - in real app, this would come from API
+      // Load messages from production API
+      const response = await axios.get(`https://whatsaapweb.onrender.com/api/messages/${wa_id}`);
+      const apiMessages = response.data;
+
+      // Transform API data to match our interface
+      const messages: Message[] = apiMessages.map((msg: any) => ({
+        _id: msg._id,
+        id: msg.id,
+        from: msg.from,
+        to: msg.to,
+        text: msg.text,
+        timestamp: msg.timestamp,
+        type: msg.type,
+        status: msg.status,
+        wa_id: msg.wa_id,
+        profile_name: msg.profile_name
+      }));
+
+      setMessages(messages);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+      // Fallback to mock data if API fails
       const mockMessages: Message[] = [
         {
           _id: '1',
@@ -179,15 +213,13 @@ function App() {
         }
       ];
       setMessages(mockMessages);
-    } catch (error) {
-      console.error('Error loading messages:', error);
     }
   };
 
   const updateContactLastMessage = (message: Message) => {
-    setContacts(prev => 
-      prev.map(contact => 
-        contact.wa_id === message.wa_id 
+    setContacts(prev =>
+      prev.map(contact =>
+        contact.wa_id === message.wa_id
           ? { ...contact, lastMessage: message, unreadCount: message.from !== 'me' ? contact.unreadCount + 1 : contact.unreadCount }
           : contact
       )
@@ -198,9 +230,9 @@ function App() {
     setSelectedContact(contact);
     loadMessages(contact.wa_id);
     // Mark as read
-    setContacts(prev => 
-      prev.map(c => 
-        c.wa_id === contact.wa_id 
+    setContacts(prev =>
+      prev.map(c =>
+        c.wa_id === contact.wa_id
           ? { ...c, unreadCount: 0 }
           : c
       )
@@ -227,11 +259,24 @@ function App() {
     updateContactLastMessage(message);
     setNewMessage('');
 
+    // Send message to production API
+    try {
+      await axios.post('https://whatsaapweb.onrender.com/api/messages', {
+        wa_id: selectedContact.wa_id,
+        text: { body: newMessage.trim() },
+        from: 'me',
+        to: selectedContact.wa_id,
+        type: 'text'
+      });
+    } catch (error) {
+      console.error('Error sending message to API:', error);
+    }
+
     // Simulate status updates
     setTimeout(() => {
-      setMessages(prev => 
-        prev.map(msg => 
-          msg._id === message._id 
+      setMessages(prev =>
+        prev.map(msg =>
+          msg._id === message._id
             ? { ...msg, status: 'delivered' }
             : msg
         )
@@ -239,9 +284,9 @@ function App() {
     }, 1000);
 
     setTimeout(() => {
-      setMessages(prev => 
-        prev.map(msg => 
-          msg._id === message._id 
+      setMessages(prev =>
+        prev.map(msg =>
+          msg._id === message._id
             ? { ...msg, status: 'read' }
             : msg
         )
@@ -316,9 +361,8 @@ function App() {
             <div
               key={contact.wa_id}
               onClick={() => handleContactClick(contact)}
-              className={`flex items-center p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 ${
-                selectedContact?.wa_id === contact.wa_id ? 'bg-green-50 border-l-4 border-l-green-500' : ''
-              }`}
+              className={`flex items-center p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 ${selectedContact?.wa_id === contact.wa_id ? 'bg-green-50 border-l-4 border-l-green-500' : ''
+                }`}
             >
               <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold mr-3">
                 {contact.profile_name.charAt(0).toUpperCase()}
@@ -385,16 +429,14 @@ function App() {
                     className={`flex ${message.from === 'me' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow-sm ${
-                        message.from === 'me'
-                          ? 'bg-green-500 text-white'
-                          : 'bg-white text-gray-900'
-                      }`}
+                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow-sm ${message.from === 'me'
+                        ? 'bg-green-500 text-white'
+                        : 'bg-white text-gray-900'
+                        }`}
                     >
                       <p className="text-sm">{message.text?.body}</p>
-                      <div className={`flex items-center justify-end space-x-1 mt-1 ${
-                        message.from === 'me' ? 'text-green-100' : 'text-gray-500'
-                      }`}>
+                      <div className={`flex items-center justify-end space-x-1 mt-1 ${message.from === 'me' ? 'text-green-100' : 'text-gray-500'
+                        }`}>
                         <span className="text-xs">
                           {formatMessageTime(message.timestamp)}
                         </span>
