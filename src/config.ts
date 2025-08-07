@@ -5,8 +5,8 @@ const config = {
         socketUrl: 'http://localhost:3001'
     },
     production: {
-        apiUrl: 'https://whatsaapweb.onrender.com',
-        socketUrl: 'https://whatsaapweb.onrender.com'
+        apiUrl: import.meta.env.VITE_API_URL || 'https://whatsaapweb.onrender.com',
+        socketUrl: import.meta.env.VITE_SOCKET_URL || 'https://whatsaapweb.onrender.com'
     }
 };
 
