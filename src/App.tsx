@@ -1089,22 +1089,9 @@ function App() {
             </div>
           </>
         ) : (
-          /* Welcome Screen */
-          <div className={`flex-1 flex items-center justify-center ${settings.darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-            <div className="text-center">
-              <div className="w-64 h-64 mx-auto mb-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
-                <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center">
-                  <div className="text-6xl font-bold text-green-500">W</div>
-                </div>
-              </div>
-              <h1 className={`text-3xl font-light mb-4 ${settings.darkMode ? 'text-white' : 'text-gray-700'}`}>WhatsApp Web</h1>
-              <p className={`max-w-md mx-auto leading-relaxed ${settings.darkMode ? 'text-gray-300' : 'text-gray-500'}`}>
-                Send and receive messages without keeping your phone online. Use WhatsApp on up to 4 linked devices and 1 phone at the same time.
-              </p>
-              <div className={`mt-8 text-sm ${settings.darkMode ? 'text-gray-400' : 'text-gray-400'}`}>
-                Select a chat to start messaging
-              </div>
-            </div>
+          /* Empty Chat Area - No Welcome Screen */
+          <div className={`flex-1 ${settings.darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+            {/* Empty state - just background color, no content */}
           </div>
         )}
       </div>
