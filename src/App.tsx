@@ -82,15 +82,47 @@ function App() {
       const response = await axios.get('https://whatsaapweb.onrender.com/api/contacts');
       const apiContacts = response.data;
 
-      // Transform API data to match our interface
-      const contacts: Contact[] = apiContacts.map((contact: any) => ({
-        wa_id: contact.wa_id,
-        profile_name: contact.profile_name,
-        unreadCount: contact.unreadCount || 0,
-        lastMessage: contact.lastMessage
-      }));
+      // Load last message for each contact
+      const contactsWithMessages: Contact[] = await Promise.all(
+        apiContacts.map(async (contact: any) => {
+          try {
+            // Get messages for this contact
+            const messagesResponse = await axios.get(`https://whatsaapweb.onrender.com/api/messages/${contact.wa_id}`);
+            const messages = messagesResponse.data;
 
-      setContacts(contacts);
+            // Get the last message
+            const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+
+            return {
+              wa_id: contact.wa_id,
+              profile_name: contact.profile_name,
+              unreadCount: contact.unreadCount || 0,
+              lastMessage: lastMessage ? {
+                _id: lastMessage._id,
+                id: lastMessage.id,
+                from: lastMessage.from,
+                to: lastMessage.to,
+                text: lastMessage.text,
+                timestamp: lastMessage.timestamp,
+                type: lastMessage.type,
+                status: lastMessage.status,
+                wa_id: lastMessage.wa_id,
+                profile_name: lastMessage.profile_name
+              } : undefined
+            };
+          } catch (error) {
+            console.error(`Error loading messages for ${contact.wa_id}:`, error);
+            return {
+              wa_id: contact.wa_id,
+              profile_name: contact.profile_name,
+              unreadCount: contact.unreadCount || 0,
+              lastMessage: undefined
+            };
+          }
+        })
+      );
+
+      setContacts(contactsWithMessages);
     } catch (error) {
       console.error('Error loading contacts:', error);
       // Fallback to mock data if API fails
