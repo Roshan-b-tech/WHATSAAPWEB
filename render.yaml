@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: whatsapp-webhook
+    env: node
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: WEBHOOK_VERIFY_TOKEN
+        value: fafa0903d0cef024f3e5c7be6b551c86ad57a6e43d1f98533605576f59456ef8
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        value: 120260017923402
+      - key: MONGODB_URI
+        value: mongodb+srv://roshangehlot500:roshan99999@cluster0.vfysh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+
